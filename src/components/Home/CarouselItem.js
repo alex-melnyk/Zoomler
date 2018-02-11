@@ -25,7 +25,7 @@ class CarouselItem extends Component {
             <View style={{
                 width: commonWidth,
                 height: commonHeight,
-                borderRadius: 5,
+                borderRadius: 10,
                 overflow: 'hidden'
             }}>
                 <TouchableOpacity

@@ -24,155 +24,134 @@ class ScreenItem extends Component {
 
     state = {
         animation: false,
-        expanded: new Animated.Value(0),
         scrollable: true,
-        interWidth: new Animated.Value(screenWidth * 0.8),
-        interHeight: new Animated.Value(300)
+        bound: new Animated.Value(0)
     };
 
-    animateCollapsing = () => {
+    animateCollapsing = (time = 300) => {
         this.setState({
             animation: true
         });
 
-        Animated.parallel([
-            Animated.timing(this.state.expanded, {
-                toValue: 0,
-                duration: 300,
-                easing: Easing.elastic(1)
-            }),
-            Animated.timing(this.state.interWidth, {
-                toValue: screenWidth * 0.8,
-                duration: 500,
-                easing: Easing.elastic(1)
-            }),
-            Animated.timing(this.state.interHeight, {
-                toValue: 300,
-                duration: 500,
-                easing: Easing.elastic(1)
-            }),
-        ]).start(() => {
+        Animated.timing(this.state.bound, {
+            toValue: 0,
+            duration: time,
+            // easing: Easing.elastic(1)
+        }).start(() => {
+            this.setState({
+                animation: false
+            });
+
             this.props.onCollapsed();
         });
     };
 
-    onAutomaticClose = () => {
+    animateExanding = (time = 500) => {
+        this.setState({
+            animation: true
+        });
+
+        Animated.timing(this.state.bound, {
+            toValue: 1,
+            duration: time,
+            easing: Easing.elastic(1)
+        }).start(() => {
+            this.setState({
+                animation: false
+            });
+        });
+    };
+
+    continueClosing = () => {
+        this.setState({scrollable: true});
+
+        if (this.state.bound._value >= .75) {
+            this.animateExanding(150);
+        } else {
+            this.animateCollapsing();
+        }
+    };
+
+    automaticClose = () => {
         if (!this.state.animation) {
             this.animateCollapsing();
         }
     };
 
-    isAvailableToCollapse = () => {
-        return (this.scrollPosition === 0);
+    normalizeAnimationValue = (value) => {
+        if (value < 0) {
+            return 0;
+        } else if (value > 1) {
+            return 1;
+        }
+
+        return value;
     };
 
     componentWillMount() {
         this.scrollPanResponder = PanResponder.create({
-            onPanResponderGrant: (evt, gestureState) => {
-                // The gesture has started. Show visual feedback so the user knows
-                // what is happening!
-
-                // gestureState.d{x,y} will be set to zero now
-                // console.log('scroll onPanResponderGrant');
-
-                if (this.scrollPosition === 0) {
-                    // this.setState({scrollable: false});
-                }
-            },
             onPanResponderMove: (evt, gestureState) => {
-                // The most recent move distance is gestureState.move{X,Y}
-
-                // The accumulated gesture distance since becoming responder is
-                // gestureState.d{x,y}
-                console.log('scroll onPanResponderMove', this.scrollPosition, gestureState.dy);
-                // evt.reject();
-
                 if (this.scrollPosition <= 0 && gestureState.dy) {
-                    this.setState({
-                        scrollable: false,
-                        collapsing: new Animated.Value(gestureState.dy)
-                    });
+                    if (this.state.scrollable) {
+                        this.setState({
+                            scrollable: false
+                        });
+                    }
+
+                    const delta = this.normalizeAnimationValue(1 - gestureState.dy / 100);
+
+                    this.state.bound.setValue(delta);
                 }
             },
-            onPanResponderTerminationRequest: (evt, gestureState) => {
-                // console.log('scroll onPanResponderTerminationRequest');
-                this.setState({scrollable: true});
-                return true;
-            },
-            onPanResponderRelease: (evt, gestureState) => {
-                // The user has released all touches while this view is the
-                // responder. This typically means a gesture has succeeded
-                this.setState({scrollable: true});
-                // console.log('scroll onPanResponderRelease');
-            }
+            onPanResponderTerminationRequest: (evt, gestureState) => this.continueClosing(),
+            onPanResponderRelease: (evt, gestureState) => this.continueClosing()
         });
     }
 
     componentDidMount() {
-        this.setState({
-            animation: true
-        });
-
-        Animated.parallel([
-            Animated.timing(this.state.expanded, {
-                toValue: 1,
-                duration: 500,
-                easing: Easing.elastic(1)
-            }),
-            Animated.timing(this.state.interWidth, {
-                toValue: screenWidth,
-                duration: 500,
-                easing: Easing.elastic(1)
-            }),
-            Animated.timing(this.state.interHeight, {
-                toValue: screenHeight,
-                duration: 500,
-                easing: Easing.elastic(1)
-            }),
-        ]).start(() => {
-            this.setState({
-                animation: false
-            });
-        });
+        this.animateExanding();
     }
 
     render() {
         const {data} = this.props;
-        const {
-            interWidth,
-            interHeight
-        } = this.state;
+        const {bound} = this.state;
 
-        // const interWidth = this.state.expanded.interpolate({
-        //     inputRange: [0, 1],
-        //     outputRange: [screenWidth * 0.8, screenWidth]
-        // });
-        //
-        // const interHeight = this.state.expanded.interpolate({
-        //     inputRange: [0, 1],
-        //     outputRange: [300, screenHeight]
-        // });
+        const interWidth = bound.interpolate({
+            inputRange: [0, 1],
+            outputRange: [screenWidth * 0.8, screenWidth]
+        });
 
-        const imageHeight = this.state.expanded.interpolate({
+        const interHeight = bound.interpolate({
+            inputRange: [0, 1],
+            outputRange: [300, screenHeight]
+        });
+
+        const imageHeight = bound.interpolate({
             inputRange: [0, 1],
             outputRange: [300, 400]
         });
 
-        const closeOpacity = this.state.expanded.interpolate({
+        const closeOpacity = this.state.bound.interpolate({
             inputRange: [0, 1],
             outputRange: [0, 1]
         });
 
-        const corners = this.state.expanded.interpolate({
+        const corners = this.state.bound.interpolate({
             inputRange: [0, 1],
-            outputRange: [5, 0]
+            outputRange: [10, 0]
+        });
+
+        const backgroundTransition = this.state.bound.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#FFFFFF00', '#FFFFFFFF']
         });
 
         return (
             <Animated.View
                 style={[Styles.containerWrapper, {
                     width: screenWidth,
-                    height: screenHeight
+                    height: screenHeight,
+                    backgroundColor: backgroundTransition
                 }]}
                 activeOpacity={1}
             >
@@ -208,16 +187,18 @@ class ScreenItem extends Component {
                                 >{data.text}</Text>
                             </View>
                         </Animated.View>
-                        <View style={Styles.content}>
+                        <Animated.View style={[Styles.content, {
+                            opacity: closeOpacity
+                        }]}>
                             <Text style={Styles.contentText}>{data.text}</Text>
-                        </View>
+                        </Animated.View>
                     </ScrollView>
 
                     <ScreenItemCloseButton
                         style={{
                             opacity: closeOpacity
                         }}
-                        onPress={this.onAutomaticClose}
+                        onPress={this.automaticClose}
                     />
                 </Animated.View>
             </Animated.View>
