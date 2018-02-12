@@ -49,6 +49,19 @@ export const ScreenItemStyles = {
     }
 };
 
+export const CarouselItemStyles = {
+    container: {
+        borderRadius: 10,
+        overflow: 'hidden',
+        backgroundColor: 'red'
+    },
+    contentWrapper: {
+        flex: 1,
+        position: 'absolute'
+    }
+};
+
 export default {
-    ScreenItemStyles
+    ScreenItemStyles,
+    CarouselItemStyles
 };

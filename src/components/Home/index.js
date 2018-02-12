@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Dimensions, Text, View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import data from '../../data';
 import CarouselItem from "./CarouselItem";
@@ -14,13 +14,13 @@ class Home extends Component {
     state = {
         itemWidth: screenWidth * .8,
         previewMode: false,
-        previewItem: null
+        previewItem: data[0]
     };
 
     contentItemWillExpand = (item) => {
         this.setState({
             previewMode: true,
-            previewItem: item
+            // previewItem: item
         })
     };
 
@@ -30,13 +30,21 @@ class Home extends Component {
         })
     };
 
-    renderItem = ({item, index}) => (
-        <CarouselItem
-            id={index}
-            data={{id: index, ...item}}
-            onPress={this.contentItemWillExpand}
-        />
-    );
+    renderItem = ({item, index}) => {
+        const width = screenWidth * 0.8;
+        const height = 300;
+
+        return (
+            <CarouselItem
+                id={index}
+                data={{id: index, ...item}}
+                width={width}
+                height={height}
+                enabled={this.state.previewItem === item}
+                onPress={this.contentItemWillExpand}
+            />
+        );
+    };
 
     render() {
         return (
@@ -47,18 +55,16 @@ class Home extends Component {
             }}>
                 <Carousel
                     slideStyle={{
-                        // flex: 1,
                         alignItems: 'center',
                         justifyContent: 'center'
                     }}
-                    ref={(c) => {
-                        this.carousel = c;
-                    }}
+                    ref={(ref) => this.carousel = ref}
                     useScrollView={true}
                     sliderWidth={screenWidth}
                     data={data}
                     renderItem={this.renderItem}
                     itemWidth={this.state.itemWidth}
+                    onSnapToItem={(index) => this.setState({previewItem: data[index]})}
                 />
                 {
                     this.state.previewMode &&
