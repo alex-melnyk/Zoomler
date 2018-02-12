@@ -11,13 +11,14 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { BlurView } from 'expo';
 import {ScreenItemStyles as Styles} from "./Styles";
 
 
 const {
     width: screenWidth,
     height: screenHeight,
-} = Dimensions.get("screen");
+} = Dimensions.get("window");
 
 class ScreenItem extends Component {
     scrollPosition = 0;
@@ -90,21 +91,44 @@ class ScreenItem extends Component {
 
     componentWillMount() {
         this.scrollPanResponder = PanResponder.create({
+            onStartShouldSetPanResponder: (evt, gestureState) => {
+                console.log('PRE', gestureState.dy, this.scrollPosition);
+                return !this.scrollPosition && gestureState.dy >= 0;
+            },
+            onStartShouldSetPanResponderCapture: (evt, gestureState) => {
+                console.log('PRE CAPTURE', gestureState.dy, this.scrollPosition);
+                return !this.scrollPosition && gestureState.dy >= 0;
+            },
+            onMoveShouldSetPanResponder: (evt, gestureState) => {
+                console.log('GESTURE', gestureState.dy, this.scrollPosition);
+                return !this.scrollPosition && gestureState.dy >= 0;
+            },
+            onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+                console.log('GESTURE CAPTURE', gestureState.dy, this.scrollPosition);
+                return !this.scrollPosition && gestureState.dy >= 0;
+            },
             onPanResponderMove: (evt, gestureState) => {
-                if (this.scrollPosition <= 0 && gestureState.dy) {
+                console.log('onPanResponderMove', gestureState.dy);
+
+                if (this.scrollPosition <= 0) {
                     if (this.state.scrollable) {
                         this.setState({
                             scrollable: false
                         });
                     }
-
                     const delta = this.normalizeAnimationValue(1 - gestureState.dy / 100);
-
                     this.state.bound.setValue(delta);
                 }
             },
-            onPanResponderTerminationRequest: (evt, gestureState) => this.continueClosing(),
-            onPanResponderRelease: (evt, gestureState) => this.continueClosing()
+            onPanResponderTerminationRequest: (evt, gestureState) => {
+                console.log('TERMINATION');
+                this.continueClosing();
+            },
+            onPanResponderRelease: (evt, gestureState) => {
+                console.log("RELEASING");
+                this.continueClosing();
+            },
+            onShouldBlockNativeResponder: (evt, gestureState) => false
         });
     }
 
@@ -136,25 +160,36 @@ class ScreenItem extends Component {
             outputRange: [0, 1]
         });
 
+        const blurOpacity = this.state.bound.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1]
+        });
+
         const corners = this.state.bound.interpolate({
             inputRange: [0, 1],
             outputRange: [10, 0]
-        });
-
-        const backgroundTransition = this.state.bound.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['#FFFFFF00', '#FFFFFFFF']
         });
 
         return (
             <Animated.View
                 style={[Styles.containerWrapper, {
                     width: screenWidth,
-                    height: screenHeight,
-                    backgroundColor: backgroundTransition
+                    height: screenHeight
                 }]}
                 activeOpacity={1}
             >
+                <Animated.View style={{
+                    position: 'absolute',
+                    width: screenWidth,
+                    height: screenHeight,
+                    opacity: blurOpacity
+                }}>
+                    <BlurView
+                        style={{flex:1}}
+                        tint="dark"
+                        intensity={32}
+                    />
+                </Animated.View>
                 <Animated.View style={[Styles.contentContainer, {
                     width: interWidth,
                     height: interHeight,

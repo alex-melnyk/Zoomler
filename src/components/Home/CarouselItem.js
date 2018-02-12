@@ -6,8 +6,8 @@ import {ScreenItemStyles as Styles} from "./Styles";
 
 const {
     width: screenWidth,
-    height: screenHeight,
-} = Dimensions.get("screen");
+    height: screenHeight
+} = Dimensions.get("window");
 
 class CarouselItem extends Component {
     state = {

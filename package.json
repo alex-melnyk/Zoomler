@@ -23,6 +23,7 @@
     "prop-types": "^15.6.0",
     "react": "16.2.0",
     "react-native": "0.52.0",
+    "react-native-blur": "^3.2.2",
     "react-native-snap-carousel": "^3.6.0"
   }
 }

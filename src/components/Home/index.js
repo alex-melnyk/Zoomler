@@ -7,8 +7,8 @@ import ScreenItem from "./ScreenItem";
 
 const {
     width: screenWidth,
-    height: screenHeight,
-} = Dimensions.get("screen");
+    height: screenHeight
+} = Dimensions.get("window");
 
 class Home extends Component {
     state = {
