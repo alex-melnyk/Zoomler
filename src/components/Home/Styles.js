@@ -17,11 +17,23 @@ export const ScreenItemStyles = {
         flex: 1,
         width: null
     },
+    imageBlockTopTextWrapper: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        padding: 10,
+        paddingTop: 40
+    },
+    imageBlockTopText: {
+        fontSize: 30,
+        fontWeight: '700',
+        color: 'white'
+    },
     imageBlockBottomTextWrapper: {
         position: 'absolute',
         left: 0,
         bottom: 0,
-        padding: 10
+        padding: 20
     },
     imageBlockBottomText: {
         fontSize: 20,
@@ -29,7 +41,7 @@ export const ScreenItemStyles = {
         color: 'white'
     },
     content: {
-        padding: 10
+        padding: 20
     },
     contentText: {
         fontSize: 18,

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo';
 import {ScreenItemStyles as Styles} from "./Styles";
+import ItemHeader from "./ItemHeader";
 
 
 const {
@@ -22,6 +23,7 @@ const {
 
 class ScreenItem extends Component {
     scrollPosition = 0;
+    scrollOffset = 0;
 
     state = {
         animation: false,
@@ -36,8 +38,7 @@ class ScreenItem extends Component {
 
         Animated.timing(this.state.bound, {
             toValue: 0,
-            duration: time,
-            // easing: Easing.elastic(1)
+            duration: time
         }).start(() => {
             this.setState({
                 animation: false
@@ -52,10 +53,9 @@ class ScreenItem extends Component {
             animation: true
         });
 
-        Animated.timing(this.state.bound, {
+        Animated.spring(this.state.bound, {
             toValue: 1,
-            duration: time,
-            easing: Easing.elastic(1)
+            duration: time
         }).start(() => {
             this.setState({
                 animation: false
@@ -64,6 +64,7 @@ class ScreenItem extends Component {
     };
 
     continueClosing = () => {
+        this.scrollOffset = 0;
         this.setState({scrollable: true});
 
         if (this.state.bound._value >= .75) {
@@ -91,32 +92,32 @@ class ScreenItem extends Component {
 
     componentWillMount() {
         this.scrollPanResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (evt, gestureState) => {
-                console.log('PRE', gestureState.dy, this.scrollPosition);
-                return !this.scrollPosition && gestureState.dy >= 0;
-            },
-            onStartShouldSetPanResponderCapture: (evt, gestureState) => {
-                console.log('PRE CAPTURE', gestureState.dy, this.scrollPosition);
-                return !this.scrollPosition && gestureState.dy >= 0;
-            },
+            // onStartShouldSetPanResponder: (evt, gestureState) => {
+            //     console.log('PRE', gestureState.dy, this.scrollPosition);
+            //
+            //     return !this.scrollPosition && gestureState.dy >= 0;
+            // },
+            // onStartShouldSetPanResponderCapture: (evt, gestureState) => {
+            //     console.log('PRE CAPTURE', gestureState.dy, this.scrollPosition);
+            //     return !this.scrollPosition && gestureState.dy >= 0;
+            // },
             onMoveShouldSetPanResponder: (evt, gestureState) => {
-                console.log('GESTURE', gestureState.dy, this.scrollPosition);
-                return !this.scrollPosition && gestureState.dy >= 0;
+                // console.log('GESTURE', gestureState.dy, this.scrollPosition);
+                this.scrollOffset = this.scrollPosition;
+                return false;
             },
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-                console.log('GESTURE CAPTURE', gestureState.dy, this.scrollPosition);
-                return !this.scrollPosition && gestureState.dy >= 0;
-            },
+            // onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+            //     console.log('GESTURE CAPTURE', gestureState.dy, this.scrollPosition);
+            //     return !this.scrollPosition && gestureState.dy >= 0;
+            // },
             onPanResponderMove: (evt, gestureState) => {
-                console.log('onPanResponderMove', gestureState.dy);
-
                 if (this.scrollPosition <= 0) {
                     if (this.state.scrollable) {
                         this.setState({
                             scrollable: false
                         });
                     }
-                    const delta = this.normalizeAnimationValue(1 - gestureState.dy / 100);
+                    const delta = this.normalizeAnimationValue(1 - (gestureState.dy - this.scrollOffset) / 200);
                     this.state.bound.setValue(delta);
                 }
             },
@@ -128,7 +129,7 @@ class ScreenItem extends Component {
                 console.log("RELEASING");
                 this.continueClosing();
             },
-            onShouldBlockNativeResponder: (evt, gestureState) => false
+            // onShouldBlockNativeResponder: (evt, gestureState) => false
         });
     }
 
@@ -203,25 +204,13 @@ class ScreenItem extends Component {
                             this.scrollPosition = y
                         }}
                     >
-                        <Animated.View contentContainerStyle={[Styles.imageBlockContainer, {
-                            width: interWidth,
-                            height: imageHeight
-                        }]}>
-                            <Animated.Image
-                                style={[Styles.imageBlockImage, {
-                                    height: imageHeight
-                                }]}
-                                source={data.image}
-                                resizeMode={Image.resizeMode.cover}
-                            />
-                            <View style={Styles.imageBlockBottomTextWrapper}>
-                                <Text
-                                    style={Styles.imageBlockBottomText}
-                                    ellipsizeMode="tail"
-                                    numberOfLines={2}
-                                >{data.text}</Text>
-                            </View>
-                        </Animated.View>
+                        <ItemHeader
+                            width={interWidth}
+                            height={imageHeight}
+                            image={data.image}
+                            topText={data.text}
+                            bottomText={data.text}
+                        />
                         <Animated.View style={[Styles.content, {
                             opacity: closeOpacity
                         }]}>

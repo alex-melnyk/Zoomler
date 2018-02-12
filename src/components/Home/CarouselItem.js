@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Dimensions, Image, Text, TouchableOpacity, View} from 'react-native';
 import {ScreenItemStyles as Styles} from "./Styles";
+import ItemHeader from "./ItemHeader";
 
 
 const {
@@ -26,7 +27,8 @@ class CarouselItem extends Component {
                 width: commonWidth,
                 height: commonHeight,
                 borderRadius: 10,
-                overflow: 'hidden'
+                overflow: 'hidden',
+                backgroundColor: 'red'
             }}>
                 <TouchableOpacity
                     style={{
@@ -36,21 +38,13 @@ class CarouselItem extends Component {
                     activeOpacity={1}
                     onPress={() => this.props.onPress(data)}
                 >
-                    <Image
-                        style={{
-                            width: commonWidth,
-                            height: commonHeight
-                        }}
-                        source={data.image}
-                        resizeMode={Image.resizeMode.cover}
+                    <ItemHeader
+                        width={commonWidth}
+                        height={commonHeight}
+                        image={data.image}
+                        topText={data.text}
+                        bottomText={data.text}
                     />
-                    <View style={Styles.imageBlockBottomTextWrapper}>
-                        <Text
-                            style={Styles.imageBlockBottomText}
-                            ellipsizeMode="tail"
-                            numberOfLines={2}
-                        >{data.text}</Text>
-                    </View>
                 </TouchableOpacity>
             </View>
         );
